@@ -11,10 +11,12 @@ public class Main {
 
         email.send(n);
         sms.send(n);
-        try {
+
+        ValidationResult waCheck = wa.canSend(n);
+        if (waCheck.valid) {
             wa.send(n);
-        } catch (RuntimeException ex) {
-            System.out.println("WA ERROR: " + ex.getMessage());
+        } else {
+            System.out.println("WA ERROR: " + waCheck.errorMessage);
             audit.add("WA failed");
         }
 
