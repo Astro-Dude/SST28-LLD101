@@ -19,16 +19,26 @@ public class TryIt {
         IncidentTicket t = service.createTicket("TCK-1001", "reporter@example.com", "Payment failing on checkout");
         System.out.println("Created: " + t);
 
-        // Demonstrate post-creation mutation through service
-        service.assign(t, "agent@example.com");
-        service.escalateToCritical(t);
-        System.out.println("\nAfter service mutations: " + t);
+        // Demonstrate immutable updates through service — returns NEW instances
+        IncidentTicket assigned = service.assign(t, "agent@example.com");
+        IncidentTicket escalated = service.escalateToCritical(assigned);
+        System.out.println("\nOriginal after service calls: " + t);
+        System.out.println("Assigned (new instance)    : " + assigned);
+        System.out.println("Escalated (new instance)   : " + escalated);
 
-        // Demonstrate external mutation via leaked list reference
-        List<String> tags = t.getTags();
-        tags.add("HACKED_FROM_OUTSIDE");
-        System.out.println("\nAfter external tag mutation: " + t);
+        System.out.println("\nOriginal identity : " + System.identityHashCode(t));
+        System.out.println("Assigned identity : " + System.identityHashCode(assigned));
+        System.out.println("Escalated identity: " + System.identityHashCode(escalated));
 
-        // Starter compiles; after refactor, you should redesign updates to create new objects instead.
+        // Demonstrate external mutation via leaked list reference is now blocked
+        List<String> tags = escalated.getTags();
+        try {
+            tags.add("HACKED_FROM_OUTSIDE");
+            System.out.println("\nERROR: external mutation was not blocked!");
+        } catch (UnsupportedOperationException e) {
+            System.out.println("\nExternal tag mutation blocked (UnsupportedOperationException)");
+        }
+
+        System.out.println("\nTicket after attempted mutation: " + escalated);
     }
 }
